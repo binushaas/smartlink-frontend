@@ -25,10 +25,28 @@ function App() {
       return
     }
 
+    const inputUrl = url.trim()
+    const normalizedUrl = /^https?:\/\//i.test(inputUrl)
+      ? inputUrl
+      : `https://${inputUrl}`
+
+    let parsedUrl
+
     try {
-      new URL(url.startsWith('http') ? url : `https://${url}`)
+      parsedUrl = new URL(normalizedUrl)
     } catch {
-      setError('Please enter a valid website URL.')
+      setError('Please enter a valid website URL, such as https://google.com.')
+      return
+    }
+
+    if (
+      !['http:', 'https:'].includes(parsedUrl.protocol) ||
+      !parsedUrl.hostname.includes('.') ||
+      parsedUrl.hostname.startsWith('.') ||
+      parsedUrl.hostname.endsWith('.') ||
+      parsedUrl.hostname.includes(' ')
+    ) {
+      setError('Please enter a valid website URL, such as https://google.com.')
       return
     }
 
@@ -39,7 +57,7 @@ function App() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          url: url.startsWith('http') ? url : `https://${url}`,
+          url: normalizedUrl,
           ...(alias.trim() ? { custom_alias: alias.trim() } : {}),
         }),
       })
